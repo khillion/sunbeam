@@ -1,6 +1,7 @@
 import os
 
 SN_STATS_TABLE_HEADER = [
+    'Sample',
     'raw total sequences',
     'filtered sequences',
     'sequences',
