@@ -1,28 +1,48 @@
 import os
 
-_FLAGSTAT_CATEGORIES = [
-    'Total',
-    'Secondary',
-    'Supplementary',
-    'Duplicates',
-    'Mapped',
-    'Paired in sequencing',
-    'Read1',
-    'Read2',
-    'Properly paired',
-    'With itself and mate mapped',
-    'Singletons',
-    'With mate mapped to a different chr',
-    'With mate mapped to a different chr (mapQ>=5)'
+SN_STATS_TABLE_HEADER = [
+    'raw total sequences',
+    'filtered sequences',
+    'sequences',
+    'is sorted',
+    '1st fragments',
+    'last fragments',
+    'reads mapped',
+    'reads mapped and paired',
+    'reads unmapped',
+    'reads properly paired',
+    'reads paired',
+    'reads duplicated',
+    'reads MQ0',
+    'reads QC failed',
+    'non-primary alignments',
+    'total length',
+    'total first fragment length',
+    'total last fragment length',
+    'bases mapped',
+    'bases mapped (cigar)',
+    'bases trimmed',
+    'bases duplicated',
+    'mismatches',
+    'error rate',
+    'average length',
+    'average first fragment length',
+    'average last fragment length',
+    'maximum length',
+    'maximum first fragment length',
+    'maximum last fragment length',
+    'average quality',
+    'insert size average',
+    'insert size standard deviation',
+    'inward oriented pairs',
+    'outward oriented pairs',
+    'pairs with other orientation',
+    'pairs on different chromosomes',
+    'percentage of properly paired reads (%)',
 ]
 
-FLAGSTAT_TABLE_HEADER = ['Sample']
-for category in _FLAGSTAT_CATEGORIES:
-    FLAGSTAT_TABLE_HEADER.append(f"{category} (QC passed)")
-    FLAGSTAT_TABLE_HEADER.append(f"{category} (QC failed)")
 
-
-class FlagstatParser:
+class SnStatsParser:
 
     def __init__(self, file_path):
         self.file_path = file_path
@@ -31,11 +51,9 @@ class FlagstatParser:
         parsed_list = []
         with open(self.file_path, 'r') as file:
             for line in file:
-                elements = line.rstrip().split('+')
-                qc_passed = elements[0].strip()
-                qc_failed = elements[1].split(' ')[1].strip()
-                parsed_list.append(qc_passed)
-                parsed_list.append(qc_failed)
+                elements = line.rstrip().split(':')
+                number = elements[1].strip().split()[0]
+                parsed_list.append(number)
         self._parsed_list = parsed_list
 
     def get_list(self):
@@ -44,9 +62,9 @@ class FlagstatParser:
         return self._parsed_list
 
 
-def generate_mapping_flagstat(flagstat_file_paths, output_file_path, sep=','):
+def generate_mapping_sn_stats(sn_stats_file_paths, output_file_path, sep=','):
     with open(output_file_path, "w") as output_file:
-        print(sep.join(FLAGSTAT_TABLE_HEADER), file=output_file)
-        for file_path in flagstat_file_paths:
-            sample_name = os.path.basename(file_path).split('.flagstat')[0]
-            print(sep.join([sample_name] + FlagstatParser(file_path).get_list()), file=output_file)
+        print(sep.join(SN_STATS_TABLE_HEADER), file=output_file)
+        for file_path in sn_stats_file_paths:
+            sample_name = os.path.basename(file_path).split('.sn.stats')[0]
+            print(sep.join([sample_name] + SnStatsParser(file_path).get_list()), file=output_file)

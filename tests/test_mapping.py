@@ -1,27 +1,52 @@
 import os
 from unittest import TestCase
 
-from sunbeamlib.mapping import FlagstatParser
+from sunbeamlib.mapping import SnStatsParser
 
 
-class TestFlagstatParser(TestCase):
+class TestSnStatsParser(TestCase):
 
     def test_parse(self):
-        file_path = os.path.join(os.path.dirname(__file__), "test_file.flagstat")
+        file_path = os.path.join(os.path.dirname(__file__), "test_file.sn.stats")
         expected_list = [
-            "6013502", "0",
-            "7562", "0",
-            "0", "0",
-            "0", "0",
-            "5991648", "0",
-            "6005940", "0",
-            "3002970", "0",
-            "3002970", "0",
-            "5911116", "0",
-            "5978452", "0",
-            "5634", "0",
-            "65898", "0",
-            "36723", "0",
+            '2365742',
+            '0',
+            '2365742',
+            '1',
+            '1182871',
+            '1182871',
+            '2328257',
+            '2301812',
+            '37485',
+            '1690132',
+            '2365742',
+            '0',
+            '286150',
+            '0',
+            '146733',
+            '352602173',
+            '176455583',
+            '176146590',
+            '347259282',
+            '323220572',
+            '0',
+            '0',
+            '3641584',
+            '1.126656e-02',
+            '149',
+            '149',
+            '149',
+            '150',
+            '150',
+            '150',
+            '36.2',
+            '323.2',
+            '67.9',
+            '842331',
+            '2966',
+            '26',
+            '305583',
+            '71.4',
         ]
-        tested_list = FlagstatParser(file_path).get_list()
+        tested_list = SnStatsParser(file_path).get_list()
         self.assertListEqual(tested_list, expected_list)

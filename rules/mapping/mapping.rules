@@ -8,7 +8,7 @@ rule all_mapping:
 rule only_mapping:
     input:
         expand(
-            str(MAPPING_FP/"{genome}"/'mapping_flagstat.csv'),
+            str(MAPPING_FP/"{genome}"/'mapping_stats.csv'),
             genome=GenomeSegments.keys()
         )
 
@@ -52,24 +52,26 @@ rule samtools_convert:
         samtools sort -@ {threads} > {output}
         """
 
-rule samtools_flagstat:
+rule samtools_stats_summary:
     input:
         str(MAPPING_FP/'{genome}'/'{sample}.bam')
     output:
-        temp(str(MAPPING_FP/'intermediates'/'{genome}'/'{sample}.flagstat'))
+        temp(str(MAPPING_FP/'intermediates'/'{genome}'/'{sample}.sn.stats'))
+    threads:
+        Cfg['mapping']['threads']
     shell:
-        "samtools flagstat {input} > {output}"
+        "samtools stats -@ {threads} {input} | grep ^SN | cut -f 2- > {output}"
 
-rule mapping_flagstat:
+rule mapping_stats:
     input:
         expand(
-            str(MAPPING_FP/"intermediates"/"{{genome}}"/"{sample}.flagstat"),
+            str(MAPPING_FP/"intermediates"/"{{genome}}"/"{sample}.sn.stats"),
             sample=Samples.keys()
         )
     output:
-        str(MAPPING_FP/'{genome}'/'mapping_flagstat.csv')
+        str(MAPPING_FP/'{genome}'/'mapping_stats.csv')
     run:
-        mapping.generate_mapping_flagstat(input, output[0])
+        mapping.generate_mapping_sn_stats(input, output[0])
 
 def _sorted_csvs(w):
     pattern = str(MAPPING_FP/'intermediates'/w.genome/'{sample}.csv')
