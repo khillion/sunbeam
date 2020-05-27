@@ -55,7 +55,7 @@ class TestSnStatsParser(TestCase):
 class TestGeneCountParser(TestCase):
 
     def test_parse(self):
-        file_path = os.path.join(os.path.dirname(__file__), "sample1_test_count_unique_ref.txt")
+        file_path = os.path.join(os.path.dirname(__file__), "sample1_ref_counts.txt")
         expected_dict = {
             'gene1': '42',
             'gene2': '15',
@@ -69,8 +69,8 @@ class TestCountMatrixBuilder(TestCase):
 
     def test_parse_files(self):
         file_paths = [
-            os.path.join(os.path.dirname(__file__), "sample1_test_count_unique_ref.txt"),
-            os.path.join(os.path.dirname(__file__), "sample2_test_count_unique_ref.txt")
+            os.path.join(os.path.dirname(__file__), "sample1_ref_counts.txt"),
+            os.path.join(os.path.dirname(__file__), "sample2_ref_counts.txt")
         ]
         expected_gene_counts = {
             'sample1': {

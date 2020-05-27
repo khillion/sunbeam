@@ -109,7 +109,7 @@ class CountMatrixBuilder:
 
     def parse_files(self):
         for file_path in self.file_paths:
-            sample_name: str = os.path.basename(file_path).split('_')[0]
+            sample_name: str = os.path.basename(file_path).split('_ref_counts.txt')[0]
             sample_gene_counts = GeneCountParser(file_path).get_dict()
             self.all_gene_counts[sample_name] = sample_gene_counts
             self.gene_names = self.gene_names.union(set(sample_gene_counts.keys()))
