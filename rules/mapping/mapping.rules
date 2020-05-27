@@ -12,6 +12,13 @@ rule only_mapping:
             genome=GenomeSegments.keys()
         )
 
+rule count_ref:
+    input:
+        expand(
+            str(MAPPING_FP/"{genome}"/'ref_counts.csv'),
+            genome=GenomeSegments.keys()
+        )
+
 rule build_genome_index:
     input:
         str(Cfg['mapping']['genomes_fp']/'{genome}.fasta')
@@ -62,6 +69,16 @@ rule samtools_stats_summary:
     shell:
         "samtools stats -@ {threads} {input} | grep ^SN | cut -f 2- > {output}"
 
+rule count_unique_ref:
+    input:
+        str(MAPPING_FP/'{genome}'/'{sample}.bam')
+    output:
+        temp(str(MAPPING_FP/'intermediates'/'{genome}'/'{sample}_ref_counts.txt'))
+    params:
+        exclude_flag = str(Cfg['mapping']['count_unique_ref']['exclude_flag'])
+    shell:
+        "samtools view -F {params.exclude_flag} {input} | cut -f3 | sort | uniq -c > {output}"
+
 rule mapping_stats:
     input:
         expand(
@@ -72,6 +89,17 @@ rule mapping_stats:
         str(MAPPING_FP/'{genome}'/'mapping_stats.csv')
     run:
         mapping.generate_mapping_sn_stats(input, output[0])
+
+rule all_count_ref:
+    input:
+        expand(
+            str(MAPPING_FP/"intermediates"/"{{genome}}"/"{sample}_ref_counts.txt"),
+            sample=Samples.keys()
+        )
+    output:
+        str(MAPPING_FP/'{genome}'/'ref_counts.csv')
+    shell:
+        "cat {input} > {output}"
 
 def _sorted_csvs(w):
     pattern = str(MAPPING_FP/'intermediates'/w.genome/'{sample}.csv')
