@@ -1,0 +1,3 @@
+      4 gene1
+      5 gene2
+      6 gene3
