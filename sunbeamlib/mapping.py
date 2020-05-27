@@ -1,6 +1,7 @@
 import os
+from typing import Dict, List, Set
 
-SN_STATS_TABLE_HEADER = [
+SN_STATS_TABLE_HEADER: List[str] = [
     'Sample',
     'raw total sequences',
     'filtered sequences',
@@ -45,17 +46,17 @@ SN_STATS_TABLE_HEADER = [
 
 class SnStatsParser:
 
-    def __init__(self, file_path):
-        self.file_path = file_path
+    def __init__(self, file_path: str):
+        self.file_path: str = file_path
 
     def _parse(self):
-        parsed_list = []
+        parsed_list: List[str] = []
         with open(self.file_path, 'r') as file:
             for line in file:
-                elements = line.rstrip().split(':')
-                number = elements[1].strip().split()[0]
+                elements: List[str] = line.rstrip().split(':')
+                number: str = elements[1].strip().split()[0]
                 parsed_list.append(number)
-        self._parsed_list = parsed_list
+        self._parsed_list: List[str] = parsed_list
 
     def get_list(self):
         if getattr(self, '_parsed_list', None) is None:
@@ -63,9 +64,77 @@ class SnStatsParser:
         return self._parsed_list
 
 
-def generate_mapping_sn_stats(sn_stats_file_paths, output_file_path, sep=','):
+class GeneCountParser:
+    """
+    Parse counts from count_unique_ref rule
+    """
+
+    def __init__(self, file_path: str):
+        self.file_path: str = file_path
+
+    def _parse(self):
+        parsed_dict: Dict[str, str] = {}
+        with open(self.file_path, 'r') as file:
+            for line in file:
+                elements: List[str] = line.strip().split()
+                parsed_dict[elements[1]] = elements[0]
+        self._parsed_dict: Dict(str) = parsed_dict
+
+    def get_dict(self):
+        if getattr(self, '_parsed_dict', None) is None:
+            self._parse()
+        return self._parsed_dict
+
+
+def generate_mapping_sn_stats(
+      sn_stats_file_paths: List[str], output_file_path: str, sep: str = ','
+):
     with open(output_file_path, "w") as output_file:
         print(sep.join(SN_STATS_TABLE_HEADER), file=output_file)
         for file_path in sn_stats_file_paths:
-            sample_name = os.path.basename(file_path).split('.sn.stats')[0]
+            sample_name: str = os.path.basename(file_path).split('.sn.stats')[0]
             print(sep.join([sample_name] + SnStatsParser(file_path).get_list()), file=output_file)
+
+
+class CountMatrixBuilder:
+
+    def __init__(self, gene_count_file_path: list):
+        self.file_paths: List[str] = gene_count_file_path
+        # We need to build a dict for each sample
+        self.all_gene_counts: Dict(Dict(str)) = {}
+        # We also keep track of all gene names found for each samples
+        self.gene_names: Set[str] = set()
+        # When writing header, we need to freeze the order of the samples
+        self.samples_names: List[str] = []
+
+    def parse_files(self):
+        for file_path in self.file_paths:
+            sample_name: str = os.path.basename(file_path).split('_')[0]
+            sample_gene_counts = GeneCountParser(file_path).get_dict()
+            self.all_gene_counts[sample_name] = sample_gene_counts
+            self.gene_names = self.gene_names.union(set(sample_gene_counts.keys()))
+
+    def _build_header(self, sep: str):
+        self.samples_names = list(self.all_gene_counts.keys())
+        col_names: List[str] = ['Genes'] + self.samples_names
+        return sep.join(col_names)
+
+    def _build_gene_line(self, gene: str, sep: str):
+        gene_counts: List[str] = [gene]
+        for sample in self.samples_names:
+            gene_counts.append(self.all_gene_counts[sample].get(gene, '0'))
+        return sep.join(gene_counts)
+
+    def output_matrix(self, output_file_path: str, sep: str):
+        with open(output_file_path, "w") as output_file:
+            print(self._build_header(sep), file=output_file)
+            for gene in self.gene_names:
+                print(self._build_gene_line(gene, sep), file=output_file)
+
+
+def build_gene_count_matrix(
+      gene_count_file_paths: List[str], output_file_path: str, sep: str = ','
+):
+    count_builder = CountMatrixBuilder(gene_count_file_paths)
+    count_builder.parse_files()
+    count_builder.output_matrix(output_file_path, sep)

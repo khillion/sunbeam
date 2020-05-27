@@ -98,8 +98,8 @@ rule all_count_ref:
         )
     output:
         str(MAPPING_FP/'{genome}'/'ref_counts.csv')
-    shell:
-        "cat {input} > {output}"
+    run:
+        mapping.build_gene_count_matrix(input, output[0])
 
 def _sorted_csvs(w):
     pattern = str(MAPPING_FP/'intermediates'/w.genome/'{sample}.csv')
