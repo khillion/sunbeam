@@ -77,7 +77,7 @@ rule count_unique_ref:
     params:
         exclude_flag = str(Cfg['mapping']['count_unique_ref']['exclude_flag'])
     shell:
-        "samtools view -F {params.exclude_flag} {input} | cut -f3 | sort | uniq -c > {output}"
+        "samtools view -F {params.exclude_flag} {input} | cut -f3 | sort | uniq -c > {output}"
 
 rule mapping_stats:
     input:
